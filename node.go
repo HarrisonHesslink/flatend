@@ -61,11 +61,13 @@ func GenerateSecretKey() kademlia.PrivateKey {
 	return secret
 }
 
-func (n *Node) Start(addrs ...string) error {
+func (n *Node) Start(external_ip string, addrs ...string) error {
 	var (
 		publicHost net.IP
 		publicPort uint16
 	)
+
+	publicHost = net.ParseIP(external_ip)
 
 	if n.SecretKey != kademlia.ZeroPrivateKey {
 		if n.PublicAddr != "" { // resolve the address
@@ -73,8 +75,6 @@ func (n *Node) Start(addrs ...string) error {
 			if err != nil {
 				return err
 			}
-
-			publicHost = addr.IP
 
 			if addr.Port <= 0 || addr.Port >= math.MaxUint16 {
 				return fmt.Errorf("'%d' is an invalid port", addr.Port)
@@ -87,7 +87,6 @@ func (n *Node) Start(addrs ...string) error {
 				return fmt.Errorf("unable to listen on any port: %w", err)
 			}
 			bindAddr := ln.Addr().(*net.TCPAddr)
-			publicHost = bindAddr.IP
 			publicPort = uint16(bindAddr.Port)
 			if err := ln.Close(); err != nil {
 				return fmt.Errorf("failed to close listener for getting available port: %w", err)
