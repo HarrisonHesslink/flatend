@@ -57,6 +57,12 @@ func (p *Provider) GetStream(id uint32) (*Stream, bool) {
 	return stream, exists
 }
 
+func (p *Provider) GetID() (*kademlia.ID) {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	return p.id
+}
+
 func (p *Provider) RegisterStream(header ServiceRequestPacket) (*Stream, bool) {
 	reader, writer := createWrappedPipe()
 
