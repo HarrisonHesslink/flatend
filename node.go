@@ -168,12 +168,12 @@ func (n *Node) Start(external_ip string, addrs ...string) error {
 		}
 	}
 
-	n.Bootstrap()
+	_ = n.Bootstrap()
 
 	return nil
 }
 
-func (n *Node) Bootstrap() {
+func (n *Node) Bootstrap() []kademlia.ID {
 	var mu sync.Mutex
 
 	var pub kademlia.PublicKey
@@ -190,8 +190,11 @@ func (n *Node) Bootstrap() {
 	ids := n.table.ClosestTo(pub, kademlia.DefaultBucketSize)
 	n.tableLock.Unlock()
 
+
+	var results []kademlia.ID
+
 	if len(ids) == 0 {
-		return
+		return results
 	}
 
 	visited[pub] = struct{}{}
@@ -200,7 +203,6 @@ func (n *Node) Bootstrap() {
 		visited[id.Pub] = struct{}{}
 	}
 
-	var results []kademlia.ID
 
 	for len(queue) > 0 || len(busy) > 0 {
 		select {
@@ -249,6 +251,7 @@ func (n *Node) Bootstrap() {
 	}
 
 	log.Printf("Discovered %d peer(s).", len(results))
+	return results
 }
 
 func (n *Node) Shutdown() {
